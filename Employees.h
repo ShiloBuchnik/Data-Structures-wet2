@@ -1,5 +1,4 @@
 #include <algorithm>
-
 #include "Company.h"
 #include "Employee.h"
 
@@ -29,6 +28,37 @@ class EmployeeHash {
 
         int hashFunction(int id){
             return id % max_size;
+        }
+
+        bool addEmployeeNoResize(int ID, Employee* employee) {
+            if (this->getEmployee(ID)) {
+                return false;
+            }
+
+            int target_index = this->hashFunction(ID);
+            EmployeeNode* dummy = this->employeeNodes[target_index];
+
+            // Define target_index as set and increment non-empty count property
+            if (!dummy->is_set) {
+                ++this->non_empty_count;
+                dummy->is_set = true;
+            }
+
+            /* 
+            * Create new employee node
+            * Note: old_head night be a nullptr, this is fine
+            */
+            EmployeeNode* old_head = dummy->next;
+            EmployeeNode* new_head = new EmployeeNode(employee, dummy, old_head);
+
+            // Add new node to appropriate linked list, change links between nodes appropriately
+            dummy->next = new_head;
+            
+            if (old_head) {
+                old_head->prev = new_head;
+            }
+
+            return true;
         }
 
     public:
@@ -61,77 +91,41 @@ class EmployeeHash {
 
     void resize(){
         int old_max = max_size;
-
-        if (non_empty_count == max_size) this->max_size *= 2{
-            EmployeeNode** tempArr = new EmployeeNode*[max_size];
-            for (int i = 0; i < old_max; i++) tempArr[i] = EmployeeNodes[i];
-            for (int i = old_max; i < max_size; i++) tempArr[i] = new EmployeeNode();
-        }
+        
+        if (non_empty_count == max_size) this->max_size *= 2;
 
         // Note: this is our variation due to resizing algorithm being inaccurate
-        else if (size <= 0.25 * max_size) this->max_size = std::ceil(max_size * 0.5) {
-            EmployeeNode** old_arr = employeeNodes;
-            employeeNodes = new EmployeeNode*[max_size];
-
-            for (int i = 0; i < max_size; i++) employeeNodes[i] = new EmployeeNode(); // Creating a dummy for every element
-
-            for (int i = 0; i < max_size; i++){ // Deleting elements in old_arr
-                if (!(old_arr[i]->next)){
-                    delete old_arr[i];
-                    continue;
-                }
-
-                EmployeeNode* list_iter = old_arr[i]->next;
-                delete list_iter->prev; // Deleting old dummy
-                while(list_iter){
-                    addEmployee(list_iter->employee->id, list_iter->employee);
-                    if (!(list_iter->next)){ // If next doesn't exist, we stop
-                        delete list_iter;
-                        list_iter = nullptr;
-                    }
-                    else{
-                        list_iter = list_iter->next;
-                        delete list_iter->prev;
-                    } 
-                }
-
-                delete[] old_arr;
-            }
-        }
-
+        else if (size <= 0.25 * max_size) this->max_size = std::ceil(max_size * 0.5);
         else return;
+            
+        EmployeeNode** old_arr = employeeNodes;
+        employeeNodes = new EmployeeNode*[max_size];
+
+        for (int i = 0; i < max_size; i++) employeeNodes[i] = new EmployeeNode(); // Creating a dummy for every element in new array
+
+        for (int i = 0; i < old_max; i++){ // Deleting the elements in old array
+            if (!(old_arr[i]->next)){
+                delete old_arr[i];
+                continue;
+            }
+
+            while(list_iter->next){
+                list_iter = list_iter->next;
+                delete list_iter->prev;
+
+                addEmployeeNoResize(list_iter->employee->ID, list_iter->employee);
+            }
+            delete list_iter;
+        }
+        
+        delete[] old_arr;
     }
 
-    // Remember to set is_set flag
+
     void addEmployee(int ID, Employee* employee) {
-        if (this->getEmployee(ID)) {
-            return;
+        if (this->addEmployeeNoResize(ID, employee)) {
+            this->resize();
         }
-
-        int target_index = this->hashFunction(ID);
-        EmployeeNode* dummy = this->employeeNodes[target_index];
-
-        // Define target_index as set and increment non-empty count property
-        if (!dummy->is_set) {
-            ++this->non_empty_count;
-            dummy->is_set = true;
-        }
-
-        /* 
-        * Create new employee node
-        * Note: old_head night be a nullptr, this is fine
-        */
-        EmployeeNode* old_head = dummy->next;
-        EmployeeNode* new_head = new EmployeeNode(employee, dummy, old_head);
-
-        // Add new node to appropriate linked list, change links between nodes appropriately
-        dummy->next = new_head;
-        
-        if (old_head) {
-            old_head->prev = new_head;
-        }
-
-        this->resize();
     }
     
     /**
@@ -157,10 +151,7 @@ class EmployeeHash {
 
         this->size = minimal_size;
         this->employeeNodes = new EmployeeNode*[this->max_size];
-        */
 
-        this->non_empty_count = 0;
-        int maximal_size = std::max(x1->max_size, x2->max_size);
         
         this->employee_size = x1->employee_size + x2->employee_size;
         this->max_size = maximal_size;
@@ -201,6 +192,41 @@ class EmployeeHash {
             this->employeeNodes[i] = x2->employeeNodes[i];
             if (this->employeeNodes[i]->next) ++this->non_empty_count;
         }
+        */
+
+        this->non_empty_count = 0;
+        this->max_size = std::max(x1->max_size, x2->max_size);
+        
+
+        // Initialize new employeeNodes array with dummy nodes
+        for (int i = 0; i < this->max_size; i++)
+            this->employeeNodes[i] = new EmployeeNode();
+
+
+        EmployeeHash* hash[] = { x1, x2 };
+
+        for (int i = 0; i < 2; i++) {
+            // Iterate over indices of hash
+            for (int j = 0; j < hash[i]->max_size; j++) {
+                EmployeeNode* list = hash[i]->employeeNodes[j];
+                
+                // Get head of linked list (might be empty) and delete dummy node in either case
+                Employee* list_node = list->next;
+                delete list;
+
+                // Continue in case of empty linked list head at current index
+                if (!list_node) continue;
+
+                // Otherwise, add employee to the new hash and delete any allocated memory
+                while (list_node) {
+                    this->addEmployeeNoResize(list_node->employee->ID, list_node->employee);
+
+                    list_node = list_node->next;
+                    delete list_node->prev;
+                }
+            }
+        } 
+
 
         // Delete old employeeNode arrays from each hash table
         delete x1->employeeNodes;
@@ -208,5 +234,5 @@ class EmployeeHash {
 
         this->resize();
     }
-        
+
 };
