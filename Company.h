@@ -1,13 +1,20 @@
-class Company{
+#ifndef COMPANY_H_
+#define COMPANY_H_
+
+#include "Employees.h"
+
+class EmployeeHash;
+
+class Company {
     private:
-        Employees employees;
+        EmployeeHash* employees;
         double value;
         int id;
 
     public:
-        Company(int _id){
-            id = _id;
-            value = _id;
-            // Employees = i hate myself (the band)
-        }
+        Company(int _id);
+
+        ~Company();
 };
+
+#endif
