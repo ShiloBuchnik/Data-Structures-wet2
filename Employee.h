@@ -2,7 +2,7 @@
 
 class Employee{
     public:
-        int grade, salary, id;
+        int grade, salary, ID;
         Company* company;
 
 
