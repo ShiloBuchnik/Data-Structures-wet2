@@ -63,27 +63,32 @@ class EmployeeHash {
                 old_head->prev = new_head;
             }
 
-            employee_size++;
-
             return true;
+        }
+
+        EmployeeNode* getEmployeeNode(int ID) {
+            EmployeeNode* node = employeeNodes[hashFunction(ID)]->next;
+
+            if (!node) return nullptr;
+
+            while (node){
+                if (node->employee->ID == ID){
+                    return node;
+                }
+
+                node = node->next;
+            }
+
+            return nullptr;
         }
 
     public:
 
     Employee* getEmployee(int ID){
-        EmployeeNode* node = employeeNodes[hashFunction(ID)]->next;
-
+        EmployeeNode* node = this->getEmployeeNode(ID);
         if (!node) return nullptr;
 
-        while (node){
-            if (node->employee->ID == ID){
-                return node->employee;
-            }
-
-            node = node->next;
-        }
-
-        return nullptr;
+        return node->employee;
     }
 
     // Default c'tor, for creating object with 0 Employees
@@ -102,11 +107,10 @@ class EmployeeHash {
         if (non_empty_count == max_size) this->max_size *= 2;
 
         // Note: this is our variation due to resizing algorithm being inaccurate
-        else if (non_empty_count <= 0.25 * max_size) this->max_size = std::ceil(max_size * 0.5);
+        else if (non_empty_count == floor(0.25 * max_size)) this->max_size = std::ceil(max_size * 0.5);
         else return;
 
         non_empty_count = 0;
-        employee_size = 0;
         EmployeeNode** old_arr = employeeNodes;
         employeeNodes = new EmployeeNode*[max_size];
 
@@ -135,7 +139,7 @@ class EmployeeHash {
 
     void addEmployee(int ID, Employee* employee) {
         this->resize();
-        this->addEmployeeNoResize(ID, employee);
+        if (this->addEmployeeNoResize(ID, employee)) ++this->employee_size;
     }
     
     /**
@@ -144,13 +148,14 @@ class EmployeeHash {
     */
     EmployeeHash(EmployeeHash* x1, EmployeeHash* x2){
         this->non_empty_count = 0;
+        this->employee_size = 0;
         this->max_size = std::max(x1->max_size, x2->max_size);
-        
+
+        this->employeeNodes = new EmployeeNode*[this->max_size];
 
         // Initialize new employeeNodes array with dummy nodes
         for (int i = 0; i < this->max_size; i++)
             this->employeeNodes[i] = new EmployeeNode(nullptr);
-
 
         EmployeeHash* hash[] = { x1, x2 };
 
@@ -158,32 +163,54 @@ class EmployeeHash {
             // Iterate over indices of hash
             for (int j = 0; j < hash[i]->max_size; j++) {
                 EmployeeNode* list = hash[i]->employeeNodes[j];
-                
+
                 // Get head of linked list (might be empty) and delete dummy node in either case
                 EmployeeNode* list_node = list->next;
-                delete list;
 
                 // Continue in case of empty linked list head at current index
                 if (!list_node) continue;
 
-                list_node->prev = nullptr;
-
                 // Otherwise, add employee to the new hash and delete any allocated memory
                 while (list_node) {
-                    delete list_node->prev;
                     this->addEmployeeNoResize(list_node->employee->ID, list_node->employee);
+                    ++this->employee_size;
 
                     list_node = list_node->next;
                 }
 
-                delete list_node;
             }
-        } 
+        }
 
+        this->resize();
+    }
 
-        // Delete old employeeNode arrays from each hash table
-        delete x1->employeeNodes;
-        delete x2->employeeNodes;
+    void deleteEmployee(int ID) {
+        EmployeeNode* target_node = this->getEmployeeNode(ID);
+
+        // A target node not being found means this employee does not exist within hash table
+        if (!target_node) return;
+
+        // Otherwise, remove the employee node from its respective linked list and alter the table's properties accordingly
+        EmployeeNode* previous_node = target_node->prev;
+        EmployeeNode* next_node = target_node->next;
+
+        // Change previous node's successive node according to whether target node had one or not
+        previous_node->next = next_node;
+
+        if (next_node) {
+            next_node->prev = previous_node;
+        }
+
+        // Set linked list to 'unset' if it's empty after deletion
+        EmployeeNode* target_list = this->employeeNodes[this->hashFunction(ID)];
+        if (!target_list->next) {
+            target_list->is_set = false;
+            --this->non_empty_count;
+        }
+
+        // Finally, delete target node
+        --this->employee_size;
+        delete target_node;
 
         this->resize();
     }

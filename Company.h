@@ -6,8 +6,9 @@
 class EmployeeHash;
 
 class Company {
-    private:
+    public:
         EmployeeHash* employees;
+        Company* owner;
         double value;
         int id;
 
