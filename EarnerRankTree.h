@@ -1,4 +1,3 @@
-
 #ifndef EarnerRankTree_H_
 #define EarnerRankTree_H_
 
@@ -668,7 +667,7 @@ EarnerTreeNode *EarnerRankTree::insert(const KeyType &key, const DataType &emplo
     return inserted_node;
 }
 
-// Deallocates a EarnerTreeNode
+// Deallocates an EarnerTreeNode
 
 void EarnerRankTree::remove(const KeyType &key)
 {
@@ -801,15 +800,12 @@ EarnerTreeNode *EarnerRankTree::removeTargetNode(EarnerTreeNode *remove_target, 
 
     // Swap between remove_target and successor locations
     this->swapNodes(remove_target, successor);
-    
-
 
     return this->removeTargetNode(successor, diff);
 }
 
 void EarnerRankTree::swapNodes(EarnerTreeNode *node1, EarnerTreeNode *node2)
 {
-
     KeyType key = node1->key;
     DataType value = node1->value;
 
@@ -855,8 +851,10 @@ void SortedNodeArrayFromTree(EarnerTreeNode *node, EarnerTreeNode **array, int *
     SortedNodeArrayFromTree(node->getLeft(), array, index);
 
     array[*index] = node;
-
     ++(*index);
+
+    node->sum_grades = node->grade;
+    node->top_workers = 1;
 
     SortedNodeArrayFromTree(node->getRight(), array, index);
 }
@@ -902,10 +900,9 @@ EarnerTreeNode **MergeSortedNodeArrays(EarnerTreeNode **arr1, EarnerTreeNode **a
     return merged_array;
 }
 
-EarnerTreeNode *ConvertSortedNodeArrayToAVL(EarnerTreeNode **array, int left, int right,
-                                            EarnerTreeNode *parent)
+EarnerTreeNode* ConvertSortedNodeArrayToAVL(EarnerTreeNode** array, int left, int right,
+                                            EarnerTreeNode* parent)
 {
-
     if (right < left)
     {
         return nullptr;
@@ -920,6 +917,16 @@ EarnerTreeNode *ConvertSortedNodeArrayToAVL(EarnerTreeNode **array, int left, in
     node->setLeft(ConvertSortedNodeArrayToAVL(array, left, mid - 1, node));
 
     node->setRight(ConvertSortedNodeArrayToAVL(array, mid + 1, right, node));
+
+    // Moral compass
+    if (node->left){
+        node->top_workers += node->left->top_workers;
+        node->sum_grades += node->left->sum_grades;
+    }
+    if (node->right){
+        node->top_workers += node->right->top_workers;
+        node->sum_grades += node->right->sum_grades;
+    }
 
     node->updateHeight();
 
@@ -940,12 +947,15 @@ EarnerTreeNode *ConvertSortedNodeArrayToAVL(EarnerTreeNode **array, int left, in
  * @return EarnerTreeNode*
  */
 
-EarnerRankTree *MergeEarnerRankTrees(EarnerRankTree *tree1, EarnerRankTree *tree2)
+EarnerRankTree* MergeEarnerRankTrees(EarnerRankTree* tree1, EarnerRankTree* tree2)
 {
-    EarnerTreeNode **tree1_array = new EarnerTreeNode *[tree1->getSize()];
-    EarnerTreeNode **tree2_array = new EarnerTreeNode *[tree2->getSize()];
+    EarnerTreeNode** tree1_array = new EarnerTreeNode *[tree1->getSize()];
+    EarnerTreeNode** tree2_array = new EarnerTreeNode *[tree2->getSize()];
 
-    int new_size = tree1->getSize() + tree2->getSize();
+    int len1 = tree1->getSize();
+    int len2 = tree2->getSize();
+
+    int new_size = len1 + len2;
 
     int i1 = 0;
     int i2 = 0;
@@ -953,18 +963,15 @@ EarnerRankTree *MergeEarnerRankTrees(EarnerRankTree *tree1, EarnerRankTree *tree
     SortedNodeArrayFromTree(tree1->getRoot(), tree1_array, &i1);
     SortedNodeArrayFromTree(tree2->getRoot(), tree2_array, &i2);
 
-    int len1 = tree1->getSize();
-    int len2 = tree2->getSize();
-
     // This action takes O(tree1->getSize() + tree2->getSize()) actions.
-    EarnerTreeNode **merged_array = MergeSortedNodeArrays(tree1_array, tree2_array, len1, len2);
+    EarnerTreeNode** merged_array = MergeSortedNodeArrays(tree1_array, tree2_array, len1, len2);
 
     delete[] tree1_array;
     delete[] tree2_array;
 
-    EarnerTreeNode *root = ConvertSortedNodeArrayToAVL(merged_array, 0, len1 + len2 - 1, nullptr);
+    EarnerTreeNode* root = ConvertSortedNodeArrayToAVL(merged_array, 0, len1 + len2 - 1, nullptr);
 
-    EarnerRankTree *tree = new EarnerRankTree();
+    EarnerRankTree* tree = new EarnerRankTree();
 
     tree->setRoot(root);
     tree->setSize(new_size);
