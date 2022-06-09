@@ -167,21 +167,21 @@ void testUnion() {
             uf.acquisition(uf.find(5*i + 1), uf.find(5*i+j), 3);
         }
     }
-
-    uf.acquisition(uf.find(23), uf.find(23), 3);
-    uf.acquisition(uf.find(7), uf.find(12), 3);
-    uf.acquisition(uf.find(2), uf.find(38), 3);
-    uf.acquisition(uf.find(6), uf.find(1), 3);
-    uf.acquisition(uf.find(41), uf.find(46), 3);
-    uf.acquisition(uf.find(21), uf.find(16), 3);
-    uf.acquisition(uf.find(21), uf.find(41), 3);
-    uf.acquisition(uf.find(21), uf.find(31), 3);
-    uf.acquisition(uf.find(26), uf.find(21), 3);
-    uf.acquisition(uf.find(26), uf.find(6), 3);
+    
+    // uf.acquisition(uf.find(23), uf.find(23), 3);
+    // uf.acquisition(uf.find(7), uf.find(12), 3);
+    // uf.acquisition(uf.find(2), uf.find(38), 3);
+    // uf.acquisition(uf.find(6), uf.find(1), 3);
+    // uf.acquisition(uf.find(41), uf.find(46), 3);
+    // uf.acquisition(uf.find(21), uf.find(16), 3);
+    // uf.acquisition(uf.find(21), uf.find(41), 3);
+    // uf.acquisition(uf.find(21), uf.find(31), 3);
+    // uf.acquisition(uf.find(26), uf.find(21), 3);
+    // uf.acquisition(uf.find(26), uf.find(6), 3);
 
     for (int i = 1; i <= 50; i++) {
         std::cout << "Company no. " << i << " is owned by company no. " << uf.find(i)->parent->company->id << " with size " << uf.find(i)->parent->size
-        << std::endl;
+        << " with value: " << uf.companyValue(i) << std::endl;
     }
 }
 
