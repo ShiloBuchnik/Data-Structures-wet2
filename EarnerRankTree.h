@@ -28,12 +28,12 @@ inline bool operator<(const SalaryKey &a, const SalaryKey &b)
     return a.EmployeeID > b.EmployeeID;
 }
 
-typedef KeyType SalaryKey;
-typedef DataType Employee *;
+typedef SalaryKey KeyType;
+typedef Employee* DataType;
 
 class EarnerTreeNode
 {
-private:
+public:
     KeyType key;
     DataType value;
 
@@ -41,16 +41,15 @@ private:
     EarnerTreeNode *left;
     EarnerTreeNode *right;
 
-    int top_workers;
-    int sum_grades;
-
     int height;
 
     void postOrderDeleteChildNodes();
 
     void print(const std::string &prefix = "");
 
-public:
+    int top_workers;
+    int sum_grades;
+
     friend class EarnerRankTree;
 
     // This is now a default destructor since nothing is being dynamically allocated
@@ -254,8 +253,9 @@ void EarnerTreeNode::print(const std::string &prefix)
 {
     try
     {
-        std::cout << prefix << "(" << this->key << ") :: ";
+        std::cout << prefix << "(salary: " << this->key.salary << " ID: " << this->key.EmployeeID << ") :: ";
         std::cout << (this->isRoot() ? "ROOT" : (this->isLeft() ? "LEFT" : "RIGHT"));
+        std::cout << " RaNk: #top_workers:# " << this->top_workers << " @@ #sum_grades:# " << this->sum_grades;
         // std::cout << ",,, PARENT: " << (this->parent ? *this->parent->key : -1);
         std::cout << std::endl;
 
@@ -342,39 +342,6 @@ public:
     EarnerTreeNode *find(const KeyType &key);
     EarnerTreeNode *insert(const KeyType &key, const DataType &value);
 
-    EarnerTreeNode *boundedMin(KeyType &key)
-    {
-        if (this->isEmpty())
-        {
-            return nullptr;
-        }
-
-        EarnerTreeNode *current = this->root;
-
-        while (current->left && current->left->key >= key)
-        {
-            current = current->left;
-        }
-
-        return current;
-    }
-
-    EarnerTreeNode *boundedMax(KeyType &key)
-    {
-        if (this->isEmpty())
-        {
-            return nullptr;
-        }
-
-        EarnerTreeNode *current = this->root;
-
-        while (current->right && current->right->key <= key)
-        {
-            current = current->right;
-        }
-
-        return current;
-    }
 
     EarnerTreeNode *min()
     {
@@ -458,12 +425,11 @@ EarnerTreeNode *EarnerRankTree::find(const KeyType &key)
     return this->root->findWithinSubtree(key);
 }
 
-/*
-
-*/
-
 EarnerTreeNode *EarnerRankTree::LLRotate(EarnerTreeNode *node)
 {
+    EarnerTreeNode *target_root = node->left;
+    EarnerTreeNode *current_root = node;
+
     // Handle rank logic
     EarnerTreeNode *A = current_root;
     EarnerTreeNode *B = current_root->right;
@@ -475,9 +441,6 @@ EarnerTreeNode *EarnerRankTree::LLRotate(EarnerTreeNode *node)
     A->sum_grades = A->left->sum_grades + B->sum_grades + A->value->grade;
 
     // Handle rotation logic
-    EarnerTreeNode *target_root = node->left;
-    EarnerTreeNode *current_root = node;
-
     target_root->parent = current_root->parent;
     current_root->parent = target_root;
 
@@ -497,20 +460,28 @@ EarnerTreeNode *EarnerRankTree::LLRotate(EarnerTreeNode *node)
     return target_root;
 }
 
+int nodeTopWorkers(EarnerTreeNode* node){
+    return (!node) ? 0 : node->top_workers;
+}
+
+int nodeSumGrades(EarnerTreeNode* node){
+    return (!node) ? 0 : node->sum_grades;
+}
+
 EarnerTreeNode *EarnerRankTree::RRRotate(EarnerTreeNode *node)
 {
+    EarnerTreeNode *target_root = node->right;
+    EarnerTreeNode *current_root = node;
+
     // Handle rank logic
     EarnerTreeNode *A = current_root;
     EarnerTreeNode *B = current_root->right;
 
-    A->top_workers = A->left->top_workers + B->left->top_workers + 1;
-    B->top_workers = A->top_workers + B->right->top_workers + 1;
+    A->top_workers = nodeTopWorkers(A->left) + nodeTopWorkers(B->left) + 1;
+    B->top_workers = nodeTopWorkers(A) + nodeTopWorkers(B->right) + 1;
 
-    A->sum_grades = A->left->sum_grades + B->left->sum_grades + A->value->grade;
-    B->sum_grades = A->sum_grades + B->right->sum_grades + B->value->grade;
-
-    EarnerTreeNode *target_root = node->right;
-    EarnerTreeNode *current_root = node;
+    A->sum_grades = nodeSumGrades(A->left) + nodeSumGrades(B->left) + A->value->grade;
+    B->sum_grades = nodeSumGrades(A) + nodeSumGrades(B->right) + B->value->grade;
 
     target_root->parent = current_root->parent;
     current_root->parent = target_root;
@@ -676,7 +647,7 @@ void EarnerRankTree::remove(const KeyType &key)
         return;
     }
 
-    DataType removed_employee = this->find(key);
+    DataType removed_employee = this->find(key)->value;
     if (!removed_employee)
         return;
 
@@ -793,10 +764,10 @@ EarnerTreeNode *EarnerRankTree::removeTargetNode(EarnerTreeNode *remove_target, 
     remove_target->top_workers = successor->top_workers;
     successor->top_workers = tmp_workers;
 
-    remove_target->sum_grades = successor->sum_grades - successor->grade + remove_target->grade;
-    successor->top_workers = tmp_grades - remove_target->grade + successor->grade;
+    remove_target->sum_grades = successor->sum_grades - successor->value->grade + remove_target->value->grade;
+    successor->top_workers = tmp_grades - remove_target->value->grade + successor->value->grade;
 
-    *diff = successor->grade - remove_target->grade;
+    *diff = successor->value->grade - remove_target->value->grade;
 
     // Swap between remove_target and successor locations
     this->swapNodes(remove_target, successor);
@@ -853,7 +824,7 @@ void SortedNodeArrayFromTree(EarnerTreeNode *node, EarnerTreeNode **array, int *
     array[*index] = node;
     ++(*index);
 
-    node->sum_grades = node->grade;
+    node->sum_grades = node->getValue()->grade;
     node->top_workers = 1;
 
     SortedNodeArrayFromTree(node->getRight(), array, index);

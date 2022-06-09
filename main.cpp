@@ -2,6 +2,7 @@
 #include "Employees.h"
 #include "Employee.h"
 #include "UnionFind.h"
+#include "EarnerRankTree.h"
 #include <random>
 
 void testHash() {
@@ -167,17 +168,20 @@ void testUnion() {
             uf.acquisition(uf.find(5*i + 1), uf.find(5*i+j), 3);
         }
     }
-    
-    // uf.acquisition(uf.find(23), uf.find(23), 3);
-    // uf.acquisition(uf.find(7), uf.find(12), 3);
-    // uf.acquisition(uf.find(2), uf.find(38), 3);
-    // uf.acquisition(uf.find(6), uf.find(1), 3);
-    // uf.acquisition(uf.find(41), uf.find(46), 3);
-    // uf.acquisition(uf.find(21), uf.find(16), 3);
-    // uf.acquisition(uf.find(21), uf.find(41), 3);
-    // uf.acquisition(uf.find(21), uf.find(31), 3);
-    // uf.acquisition(uf.find(26), uf.find(21), 3);
-    // uf.acquisition(uf.find(26), uf.find(6), 3);
+
+    uf.acquisition(uf.find(1), uf.find(6), 3);
+
+//    uf.acquisition(uf.find(23), uf.find(23), 3);
+//    uf.acquisition(uf.find(7), uf.find(12), 3);
+//    uf.acquisition(uf.find(2), uf.find(38), 3);
+//    uf.acquisition(uf.find(6), uf.find(1), 3);
+//    uf.acquisition(uf.find(41), uf.find(46), 3);
+//    uf.acquisition(uf.find(21), uf.find(16), 3);
+//    uf.acquisition(uf.find(21), uf.find(41), 3);
+//    uf.acquisition(uf.find(21), uf.find(31), 3);
+//    uf.acquisition(uf.find(26), uf.find(21), 3);
+//    uf.acquisition(uf.find(26), uf.find(6), 3);
+
 
     for (int i = 1; i <= 50; i++) {
         std::cout << "Company no. " << i << " is owned by company no. " << uf.find(i)->parent->company->id << " with size " << uf.find(i)->parent->size
@@ -185,7 +189,32 @@ void testUnion() {
     }
 }
 
+void testTree(){
+    EarnerRankTree* tree1 = new EarnerRankTree();
+    EarnerRankTree* tree2 = new EarnerRankTree();
+
+    Company* company = new Company(3);
+
+    int magic = 5;
+
+    Employee* arr[3*magic];
+    for (int i = 0; i < 2*magic; i++) {
+        arr[i] = new Employee(i + 1, company, i + 1, i + 1);
+    }
+
+    for (int i = 0; i < magic; i++) {
+        tree1->insert({arr[i]->ID, arr[i]->salary}, arr[i]);
+    }
+    for (int i = magic; i < 2*magic; i++) {
+        tree2->insert({arr[i]->ID, arr[i]->salary}, arr[i]);
+    }
+
+    tree1->print();
+    std::cout << std::endl << std::endl;
+    tree2->print();
+}
+
 int main() {
-    testUnion();
+    testTree();
     return 0;
 }

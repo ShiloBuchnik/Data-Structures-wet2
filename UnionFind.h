@@ -13,7 +13,9 @@ struct CompanyNode{
 
 
     CompanyNode(Company* _company, CompanyNode* _parent = nullptr, int _size = 1) :
-         company(_company), parent(_parent), size(_size), r(0.0) {}
+         company(_company), parent(_parent), size(_size) {
+             r = _company->value;
+         }
 
     bool isRoot() { return this->parent->parent == nullptr; }
 };
@@ -59,7 +61,7 @@ class CompanyUnion{
             delete acquirer_hash;
             delete target_hash;
 
-            CompanyNode* greater = (acquirer_label->size <= target_label->size) ? acquirer : target; // Potential bug
+            CompanyNode* greater = (acquirer_label->size >= target_label->size) ? acquirer : target; // Potential bug
             CompanyNode* smaller = (greater == acquirer) ? target : acquirer;
 
             acquirer->r += added_value;
@@ -68,7 +70,6 @@ class CompanyUnion{
                 acquirer->r -= target->r;
             else
                 target->r -= acquirer->r;
-
 
             // The target label is no longer needed from this point on
             delete target_label;
@@ -101,12 +102,15 @@ class CompanyUnion{
             while (node != root) {
                 r_subtract += node->r;
                 node->r = (r_sum - r_subtract) + node->r;
-                node->company->value = node->r;
+                node->company->value = node->r + root->r;
 
                 temp_parent = node->parent;
                 node->parent = root;
                 node = temp_parent;
             }
+
+            r_subtract += node->r;
+            node->company->value = (r_sum - r_subtract) + 2 * node->r;
 
             return root;
         }
@@ -141,9 +145,8 @@ class CompanyUnion{
 // Moral compass
 remainder_m = desired_m
 
-
 sumHighestEmployeeGrades
-highestEmpoy
+highestEmployee
 
 sum = 0
 
@@ -161,11 +164,7 @@ while remainder_m > 0 and node != null:
         remainder_m -= 1 + node->right->highestEarnerCount
         node = node->left
 
-
-
-
 */
-
 
 
 #endif
