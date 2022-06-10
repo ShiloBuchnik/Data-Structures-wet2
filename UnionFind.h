@@ -163,7 +163,6 @@ while remainder_m > 0 and node != null:
         sum += node->sumHighestEmployeeGrades - node->left->sumHighestEmployeeGrades
         remainder_m -= 1 + node->right->highestEarnerCount
         node = node->left
-
 */
 
 

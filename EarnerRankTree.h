@@ -255,7 +255,7 @@ void EarnerTreeNode::print(const std::string &prefix)
     {
         std::cout << prefix << "(salary: " << this->key.salary << " ID: " << this->key.EmployeeID << ") :: ";
         std::cout << (this->isRoot() ? "ROOT" : (this->isLeft() ? "LEFT" : "RIGHT"));
-        std::cout << " RaNk: #top_workers:# " << this->top_workers << " @@ #sum_grades:# " << this->sum_grades;
+        std::cout << " Rank: #top_workers:# " << this->top_workers << " @@ #sum_grades:# " << this->sum_grades;
         // std::cout << ",,, PARENT: " << (this->parent ? *this->parent->key : -1);
         std::cout << std::endl;
 
@@ -425,20 +425,29 @@ EarnerTreeNode *EarnerRankTree::find(const KeyType &key)
     return this->root->findWithinSubtree(key);
 }
 
+// We don't want to access NULL nodes
+int nodeTopWorkers(EarnerTreeNode* node){
+    return (!node) ? 0 : node->top_workers;
+}
+
+int nodeSumGrades(EarnerTreeNode* node){
+    return (!node) ? 0 : node->sum_grades;
+}
+
 EarnerTreeNode *EarnerRankTree::LLRotate(EarnerTreeNode *node)
 {
     EarnerTreeNode *target_root = node->left;
     EarnerTreeNode *current_root = node;
 
     // Handle rank logic
-    EarnerTreeNode *A = current_root;
-    EarnerTreeNode *B = current_root->right;
+    EarnerTreeNode *B = current_root;
+    EarnerTreeNode *A = current_root->left;
 
-    B->top_workers = A->right->top_workers + B->right->top_workers + 1;
-    A->top_workers = A->left->top_workers + B->top_workers + 1;
+    B->top_workers = nodeTopWorkers(A->right) + nodeTopWorkers(B->right) + 1;
+    A->top_workers = nodeTopWorkers(A->left) + nodeTopWorkers(B) + 1;
 
-    B->sum_grades = A->right->sum_grades + B->right->sum_grades + B->value->grade;
-    A->sum_grades = A->left->sum_grades + B->sum_grades + A->value->grade;
+    B->sum_grades = nodeSumGrades(A->right) + nodeSumGrades(B->right) + B->value->grade;
+    A->sum_grades = nodeSumGrades(A->left) + nodeSumGrades(B) + A->value->grade;
 
     // Handle rotation logic
     target_root->parent = current_root->parent;
@@ -460,13 +469,6 @@ EarnerTreeNode *EarnerRankTree::LLRotate(EarnerTreeNode *node)
     return target_root;
 }
 
-int nodeTopWorkers(EarnerTreeNode* node){
-    return (!node) ? 0 : node->top_workers;
-}
-
-int nodeSumGrades(EarnerTreeNode* node){
-    return (!node) ? 0 : node->sum_grades;
-}
 
 EarnerTreeNode *EarnerRankTree::RRRotate(EarnerTreeNode *node)
 {
@@ -647,13 +649,19 @@ void EarnerRankTree::remove(const KeyType &key)
         return;
     }
 
-    DataType removed_employee = this->find(key)->value;
-    if (!removed_employee)
+    EarnerTreeNode* removed_employee_node = this->find(key);
+    if (!removed_employee_node)
         return;
 
+    bool successor_existed = (!removed_employee_node->isLeaf() && !removed_employee_node->isSingleParent());
+
+    Employee* employee = removed_employee_node->value;
     int diff = 0;
 
     EarnerTreeNode *v = this->removeAux(key, this->root, &diff);
+
+    EarnerTreeNode *successor = removed_employee_node;
+    bool successor_path = successor_existed && (successor != nullptr);
 
     // No such key exists
     if (!v)
@@ -665,19 +673,23 @@ void EarnerRankTree::remove(const KeyType &key)
 
     while (v)
     {
-
         // Follow path from deleted target upto root
         v->updateHeight();
 
         // Update rank of node
+        if (v == successor) {
+            successor_path = false;
+        }
+
         --v->top_workers;
-        v->sum_grades -= removed_employee->grade + diff;
+        v->sum_grades -= (successor_path) ? successor->value->grade : employee->grade;
 
         // Automatically checks if balanced and rotates accordingly.
         v = this->balance(v);
 
         /*
          * Figure out other expression that can be used to reduce journey upwards
+         *
          * */
 
         v = v->parent;
@@ -757,17 +769,6 @@ EarnerTreeNode *EarnerRankTree::removeTargetNode(EarnerTreeNode *remove_target, 
 
     // Otherwise, remove target has two children, proceed accordingly by removing the successor
     EarnerTreeNode *successor = remove_target->getSuccessor();
-
-    int tmp_workers = remove_target->top_workers;
-    int tmp_grades = remove_target->sum_grades;
-
-    remove_target->top_workers = successor->top_workers;
-    successor->top_workers = tmp_workers;
-
-    remove_target->sum_grades = successor->sum_grades - successor->value->grade + remove_target->value->grade;
-    successor->top_workers = tmp_grades - remove_target->value->grade + successor->value->grade;
-
-    *diff = successor->value->grade - remove_target->value->grade;
 
     // Swap between remove_target and successor locations
     this->swapNodes(remove_target, successor);

@@ -187,6 +187,7 @@ void testUnion() {
         std::cout << "Company no. " << i << " is owned by company no. " << uf.find(i)->parent->company->id << " with size " << uf.find(i)->parent->size
         << " with value: " << uf.companyValue(i) << std::endl;
     }
+
 }
 
 void testTree(){
@@ -195,7 +196,7 @@ void testTree(){
 
     Company* company = new Company(3);
 
-    int magic = 5;
+    int magic = 40;
 
     Employee* arr[3*magic];
     for (int i = 0; i < 2*magic; i++) {
@@ -212,6 +213,48 @@ void testTree(){
     tree1->print();
     std::cout << std::endl << std::endl;
     tree2->print();
+
+    std::cout << std::endl << std::endl;
+//
+//
+//    EarnerRankTree* tree3 =  MergeEarnerRankTrees(tree1, tree2);
+//
+//    tree3->print();
+
+//     for (int i = 0; i < magic; i+= 2) {
+//         tree1->remove({ i+1, i+1 });
+//    }
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<std::mt19937::result_type> dist(0,magic*2);
+
+    int values[magic];
+
+    for (int i = 0; i < magic; i++) {
+        int index;
+        bool in_array = true;
+        do {
+            int found = false;
+            index = dist(rng);
+            for (int j = 0; j < i; j++) {
+                if (values[j] == index + 1) {
+                    found = true;
+                    break;
+                }
+            }
+            in_array = found;
+        } while (in_array);
+        values[i] = index + 1;
+    }
+
+    for (int i = 0; i < magic; i++){
+        tree1-> remove({values[i], values[i]});
+    }
+
+     std::cout << std::endl << std::endl;
+
+
+     tree1->print();
 }
 
 int main() {
