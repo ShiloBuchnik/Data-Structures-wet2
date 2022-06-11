@@ -40,7 +40,6 @@ class CompanyUnion{
         // Union function
         void acquisition(CompanyNode* acquirer, CompanyNode* target, double factor) {
             if (acquirer == nullptr || target == nullptr) throw "i hate myself (the band)";
-
             if (acquirer == target || !acquirer->isRoot() || !target->isRoot()) return;
             
             CompanyNode* acquirer_label = acquirer->parent;
@@ -140,30 +139,5 @@ class CompanyUnion{
             delete this->companyNodes;
         }
 };
-
-/*
-// Moral compass
-remainder_m = desired_m
-
-sumHighestEmployeeGrades
-highestEmployee
-
-sum = 0
-
-while remainder_m > 0 and node != null:
-
-    if node->right->highestEarnerCount > remainder_m:
-        node = node->right
-        
-    elif (node->right->highestEarnerCount == remainder_m):
-        sum += node->right->sumHighestEmployeeGrades
-        remainder_m = 0
-    
-    else:
-        sum += node->sumHighestEmployeeGrades - node->left->sumHighestEmployeeGrades
-        remainder_m -= 1 + node->right->highestEarnerCount
-        node = node->left
-*/
-
 
 #endif

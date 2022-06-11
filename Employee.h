@@ -11,6 +11,6 @@ class Employee {
         int salary;
         int grade;
 
-        Employee(int _ID, Company* _company, int _salary, int _grade): ID(_ID), company(_company), salary(_salary), grade(_grade) {}
+        Employee(int _ID, Company* _company, int _salary, int _grade);
 };
 #endif

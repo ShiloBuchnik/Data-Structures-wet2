@@ -1,8 +1,9 @@
 #include <iostream>
-#include "Employees.h"
+#include "EmployeeHash.h"
 #include "Employee.h"
-#include "UnionFind.h"
+#include "CompanyUnion.h"
 #include "EarnerRankTree.h"
+#include "EmployeeManager.h"
 #include <random>
 
 void testHash() {
@@ -184,7 +185,7 @@ void testUnion() {
 
 
     for (int i = 1; i <= 50; i++) {
-        std::cout << "Company no. " << i << " is owned by company no. " << uf.find(i)->parent->company->id << " with size " << uf.find(i)->parent->size
+        std::cout << "Company no. " << i << " is owned by company no. " << uf.find(i)->parent->company->ID << " with size " << uf.find(i)->parent->size
         << " with value: " << uf.companyValue(i) << std::endl;
     }
 
@@ -257,7 +258,39 @@ void testTree(){
      tree1->print();
 }
 
+void testEmployeeManager() {
+    EmployeeManager* manager = new EmployeeManager(20);
+
+    for (int i = 1; i <= 20; i++){
+        manager->addEmployee(i, i, i);
+        manager->employeeSalaryIncrease(i, i);
+    }
+
+    manager->acquireCompany(2, 5, 2.5);
+    manager->acquireCompany(2, 6, 3.5);
+    manager->acquireCompany(1, 2, 2.5);
+    manager->acquireCompany(3, 3, 2.5);
+    manager->acquireCompany(3, 8, 2.5);
+
+
+
+    manager->promoteEmployee(300, 200);
+
+    manager->removeEmployee(300);
+
+    int sumBump;
+    for (int i = 1; i <= 20; i++) {
+        manager->sumOfBumpGradeBetweenTopWorkersByGroup(0, i, &sumBump);
+        std::cout << "Sum of grades is: " << sumBump << std::endl;
+    }
+
+
+
+    manager->top_workers->print();
+}
+
 int main() {
-    testTree();
+    testEmployeeManager();
+    std::cout << "I'm alive! - Becca" << std::endl;
     return 0;
 }

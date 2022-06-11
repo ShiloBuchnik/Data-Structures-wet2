@@ -1,19 +1,21 @@
 #ifndef COMPANY_H_
 #define COMPANY_H_
 
-#include "Employees.h"
+#include "EmployeeHash.h"
+#include "EarnerRankTree.h"
 
-class EmployeeHash;
+class EarnerRankTree;
 
 class Company {
     public:
         EmployeeHash* employees;
         Company* owner;
+        EarnerRankTree* top_workers;
         double value;
-        int id;
+        int ID;
 
     public:
-        Company(int _id);
+        Company(int _ID);
 
         ~Company();
 };
