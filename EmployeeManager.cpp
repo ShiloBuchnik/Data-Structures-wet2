@@ -146,6 +146,21 @@ StatusType EmployeeManager::promoteEmployee(int employeeID, int bumpGrade){
     if (bumpGrade > 0){
         employee->grade += bumpGrade;
     }
+    
+    // Update 'sum_grade' property of relevant rank trees if the employee has a non-zero salary
+    if (bumpGrade > 0 && employee->salary > 0) {
+        EarnerRankTree* tree[] = { this->top_workers, employee->company->top_workers };
+        
+        for (int i = 0; i < 2; i++) {
+            EarnerTreeNode* node = tree[i]->find({ employee->salary, employee->ID });
+            
+            // Note that 'node' cannot be empty due to manner in which the earner trees are maintained
+            while (node) {
+                node->sum_grades += bumpGrade;
+                node = node->parent;
+            }
+        }
+    }
 
     return SUCCESS;
 }
