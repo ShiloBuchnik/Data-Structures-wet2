@@ -124,7 +124,7 @@ int nodeTopWorkers(EarnerTreeNode* node){
     return (!node) ? 0 : node->top_workers_count;
 }
 
-int nodeSumGrades(EarnerTreeNode* node){
+long long int nodeSumGrades(EarnerTreeNode* node){
     return (!node) ? 0 : node->sum_grades;
 }
 

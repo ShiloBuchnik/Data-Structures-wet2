@@ -9,68 +9,67 @@ EmployeeNode::EmployeeNode(Employee* _employee, EmployeeNode* _prev, EmployeeNod
 }
 
 // Default c'tor, for creating object with 0 Employees
-    EmployeeHash::EmployeeHash(){
-        employeeNodes = new EmployeeNode*[1];
-        non_empty_count = 0;
-        employee_size = 0;
-        max_size = 1;
-        employeeNodes[0] = new EmployeeNode(nullptr);
+EmployeeHash::EmployeeHash(){
+    employeeNodes = new EmployeeNode*[1];
+    non_empty_count = 0;
+    employee_size = 0;
+    max_size = 1;
+    employeeNodes[0] = new EmployeeNode(nullptr);
+}
+
+ bool EmployeeHash::addEmployeeNoResize(int ID, Employee* employee) {
+     if (this->getEmployee(ID)) {
+        return false;
     }
 
-     bool EmployeeHash::addEmployeeNoResize(int ID, Employee* employee) {
-            if (this->getEmployee(ID)) {
-                return false;
-            }
+    int target_index = this->hashFunction(ID);
+    EmployeeNode* dummy = this->employeeNodes[target_index];
 
-            int target_index = this->hashFunction(ID);
-            EmployeeNode* dummy = this->employeeNodes[target_index];
-
-            // Define target_index as set and increment non-empty count property
-            if (!dummy->is_set) {
-                ++this->non_empty_count;
-                dummy->is_set = true;
-            }
-
-            /* 
-            * Create new employee node
-            * Note: old_head night be a nullptr, this is fine
-            */
-            EmployeeNode* old_head = dummy->next;
-            EmployeeNode* new_head = new EmployeeNode(employee, dummy, old_head);
-
-            // Add new node to appropriate linked list, change links between nodes appropriately
-            dummy->next = new_head;
-            
-            if (old_head) {
-                old_head->prev = new_head;
-            }
-
-            return true;
-        }
-
-        EmployeeNode* EmployeeHash::getEmployeeNode(int ID) {
-            EmployeeNode* node = employeeNodes[hashFunction(ID)]->next;
-
-            if (!node) return nullptr;
-
-            while (node){
-                if (node->employee->ID == ID){
-                    return node;
-                }
-
-                node = node->next;
-            }
-
-            return nullptr;
-        }
-
-        Employee* EmployeeHash::getEmployee(int ID){
-        EmployeeNode* node = this->getEmployeeNode(ID);
-        if (!node) return nullptr;
-
-        return node->employee;
+    // Define target_index as set and increment non-empty count property
+    if (!dummy->is_set) {
+        ++this->non_empty_count;
+        dummy->is_set = true;
     }
 
+    /*
+    * Create new employee node
+    * Note: old_head night be a nullptr, this is fine
+    */
+    EmployeeNode* old_head = dummy->next;
+    EmployeeNode* new_head = new EmployeeNode(employee, dummy, old_head);
+
+    // Add new node to appropriate linked list, change links between nodes appropriately
+    dummy->next = new_head;
+
+    if (old_head) {
+        old_head->prev = new_head;
+    }
+
+    return true;
+}
+
+EmployeeNode* EmployeeHash::getEmployeeNode(int ID) {
+    EmployeeNode* node = employeeNodes[hashFunction(ID)]->next;
+
+    if (!node) return nullptr;
+
+    while (node){
+        if (node->employee->ID == ID){
+            return node;
+        }
+
+        node = node->next;
+    }
+
+    return nullptr;
+}
+
+Employee* EmployeeHash::getEmployee(int ID){
+    EmployeeNode* node = this->getEmployeeNode(ID);
+    if (!node) return nullptr;
+
+    return node->employee;
+}
 
 void EmployeeHash::resize(){
     int old_max = max_size;

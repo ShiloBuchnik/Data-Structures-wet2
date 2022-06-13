@@ -8,9 +8,9 @@ class Employee {
     public:
         int ID;
         Company* company;
-        int salary;
-        int grade;
+        long long int salary;
+        long long int grade;
 
-        Employee(int _ID, Company* _company, int _salary, int _grade);
+        Employee(int _ID, Company* _company, long long int _salary, long long int _grade);
 };
 #endif

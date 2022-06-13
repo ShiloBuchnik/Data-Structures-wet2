@@ -62,19 +62,28 @@ StatusType SumOfBumpGradeBetweenTopWorkersByGroup(void *DS, int companyID, int m
     return ((EmployeeManager*)(DS))->sumOfBumpGradeBetweenTopWorkersByGroup(companyID, m, sumBumpGrade);
 }
 
-StatusType AverageBumpGradeBetweenSalaryByGroup(void *DS, int companyID, int lowerSalary, int higherSalary, void * averageBumpGrade){
-    if (DS == NULL) {
+ StatusType AverageBumpGradeBetweenSalaryByGroup(void *DS, int companyID, int lowerSalary, int higherSalary, void * averageBumpGrade){
+     if (DS == NULL) {
+         return INVALID_INPUT;
+     }
+
+     return ((EmployeeManager*)(DS))->averageBumpGradeBetweenSalaryByGroup(companyID, lowerSalary, higherSalary, averageBumpGrade);
+ }
+
+StatusType CompanyValue(void *DS, int companyID, void * standing) {
+    if (!DS || !standing) {
         return INVALID_INPUT;
     }
 
-    return ((EmployeeManager*)(DS))->averageBumpGradeBetweenSalaryByGroup(companyID, lowerSalary, higherSalary, averageBumpGrade);
+    return ((EmployeeManager*)(DS))->companyValue(companyID, standing);
 }
-
-StatusType CompanyValue(void *DS, int companyID, void * standing);
 
 /*
  * 20 point Bonus function:
 StatusType BumpGradeToEmployees(void *DS, int lowerSalary, int higherSalary, int bumpGrade);
  */
 
-void Quit(void** DS);
+void Quit(void** DS) {
+    delete *((EmployeeManager**)DS);
+    *DS = NULL;
+}

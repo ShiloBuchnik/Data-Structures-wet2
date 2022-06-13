@@ -9,7 +9,7 @@ struct CompanyNode{
     Company* company;
     CompanyNode* parent;
     int size;
-    double r; // Helper field, as seen in boxes problem
+    long double r; // Helper field, as seen in boxes problem
 
 
     CompanyNode(Company* _company, CompanyNode* _parent = nullptr, int _size = 1) :
@@ -38,14 +38,13 @@ class CompanyUnion{
         }
 
         // Union function
-        void acquisition(CompanyNode* acquirer, CompanyNode* target, double factor) {
-            if (acquirer == nullptr || target == nullptr) throw "i hate myself (the band)";
+        void acquisition(CompanyNode* acquirer, CompanyNode* target, long double factor) {
             if (acquirer == target || !acquirer->isRoot() || !target->isRoot()) return;
             
             CompanyNode* acquirer_label = acquirer->parent;
             CompanyNode* target_label = target->parent;
 
-            double added_value = factor * target_label->company->value;
+            long double added_value = factor * target_label->company->value;
 
             int unified_group_size = acquirer_label->size + target_label->size;
 
@@ -80,7 +79,7 @@ class CompanyUnion{
         }
 
         CompanyNode* find(int CompanyID) {
-            double r_sum = 0.0;
+            long double r_sum = 0.0;
 
             if (CompanyID > numberOfCompanies || CompanyID <= 0) {
                 return nullptr;
@@ -94,7 +93,7 @@ class CompanyUnion{
 
             CompanyNode* root = node;
 
-            double r_subtract = 0;
+            long double r_subtract = 0;
             // $root now stores the root of target company
             node = this->companyNodes[CompanyID - 1];
             CompanyNode* temp_parent;
@@ -122,7 +121,7 @@ class CompanyUnion{
             return root->parent->company;
         }
 
-        double companyValue(int ID) {
+        long double companyValue(int ID) {
             this->find(ID);
             return companyNodes[ID - 1]->company->value;
         }

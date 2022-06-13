@@ -10,7 +10,7 @@
 
 typedef struct salary_key_t
 {
-    int salary;
+    long long int salary;
     int EmployeeID;
 } SalaryKey;
 
@@ -26,6 +26,13 @@ inline bool operator<(const SalaryKey &a, const SalaryKey &b)
     }
 
     return a.EmployeeID < b.EmployeeID;
+}
+
+inline SalaryKey operator - (const SalaryKey &a, const SalaryKey &b)
+{
+    SalaryKey difference = {a.salary - b.salary, a.EmployeeID - b.EmployeeID};
+
+    return difference;
 }
 
 typedef SalaryKey KeyType;
@@ -44,7 +51,7 @@ public:
     int height;
 
     int top_workers_count;
-    int sum_grades;
+    long long int sum_grades;
 
      void postOrderDeleteChildNodes();
 

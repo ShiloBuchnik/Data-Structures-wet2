@@ -11,12 +11,12 @@ class Company {
         EmployeeHash* employees;
         Company* owner;
         EarnerRankTree* top_workers;
-        double value;
+        long double value;
         int ID;
+        long long int non_salary_sum_grades;
+        int non_salary_count;
 
-    public:
         Company(int _ID);
-
         ~Company();
 };
 
