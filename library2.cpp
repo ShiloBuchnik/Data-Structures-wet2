@@ -1,7 +1,6 @@
 #include "library2.h"
 #include "EmployeeManager.h"
 
-
 void *Init(int k) {
     EmployeeManager* DS;
     try {
@@ -54,36 +53,62 @@ StatusType PromoteEmployee(void *DS, int employeeID, int bumpGrade){
     return ((EmployeeManager*)(DS))->promoteEmployee(employeeID, bumpGrade);
 }
 
-StatusType SumOfBumpGradeBetweenTopWorkersByGroup(void *DS, int companyID, int m, void * sumBumpGrade){
+StatusType SumOfBumpGradeBetweenTopWorkersByGroup(void *DS, int companyID, int m){
     if (DS == NULL) {
         return INVALID_INPUT;
     }
 
-    return ((EmployeeManager*)(DS))->sumOfBumpGradeBetweenTopWorkersByGroup(companyID, m, sumBumpGrade);
+    long long int sumBumpGrade = 0;
+
+    StatusType res = ((EmployeeManager*)(DS))->sumOfBumpGradeBetweenTopWorkersByGroup(companyID, m, &sumBumpGrade);
+
+    if (res != SUCCESS){
+        return res;
+    }
+
+    printf("SumOfBumpGradeBetweenTopWorkersByGroup: %lld\n", sumBumpGrade);
+
+    return SUCCESS;
 }
 
- StatusType AverageBumpGradeBetweenSalaryByGroup(void *DS, int companyID, int lowerSalary, int higherSalary, void * averageBumpGrade){
+ StatusType AverageBumpGradeBetweenSalaryByGroup(void *DS, int companyID, int lowerSalary, int higherSalary){
      if (DS == NULL) {
          return INVALID_INPUT;
      }
 
-     return ((EmployeeManager*)(DS))->averageBumpGradeBetweenSalaryByGroup(companyID, lowerSalary, higherSalary, averageBumpGrade);
+    double averageBumpGrade = 0;
+
+    StatusType res = ((EmployeeManager*)(DS))->averageBumpGradeBetweenSalaryByGroup(companyID, lowerSalary, higherSalary, &averageBumpGrade);
+
+    if (res != SUCCESS){
+        return res;
+    }
+     
+     printf("AverageBumpGradeBetweenSalaryByGroup: %.1lf\n", floor(10 * averageBumpGrade + 0.5f) / (double)10);
+
+     return SUCCESS;
  }
 
-StatusType CompanyValue(void *DS, int companyID, void * standing) {
-    if (!DS || !standing) {
+StatusType CompanyValue(void *DS, int companyID) {
+    if (!DS) {
         return INVALID_INPUT;
     }
 
-    return ((EmployeeManager*)(DS))->companyValue(companyID, standing);
+    double standing = 0;
+
+    StatusType res = ((EmployeeManager*)(DS))->companyValue(companyID, &standing);
+
+    if (res != SUCCESS){
+        return res;
+    }
+
+    printf("CompanyValue: %.1lf\n", floor(10 * standing + 0.5f) / (double)10);
+
+    return SUCCESS;
 }
 
-/*
- * 20 point Bonus function:
-StatusType BumpGradeToEmployees(void *DS, int lowerSalary, int higherSalary, int bumpGrade);
- */
-
-void Quit(void** DS) {
-    delete *((EmployeeManager**)DS);
-    *DS = NULL;
+void Quit(void** DS) 
+{
+    delete (EmployeeManager*)*DS;
+    *(DS) = NULL;
 }

@@ -381,11 +381,6 @@ void EarnerRankTree::remove(const KeyType &key)
         // Automatically checks if balanced and rotates accordingly.
         v = this->balance(v);
 
-        /*
-         * Figure out other expression that can be used to reduce journey upwards
-         *
-         * */
-
         v = v->parent;
     }
 

@@ -17,16 +17,19 @@ public:
     long long int non_salary_sum_grades;
     int non_salary_count;
 
-public:
     EmployeeManager(int _num_companies);
 
     ~EmployeeManager();
+
+    EmployeeManager(const EmployeeManager& em) = delete;
+
+    EmployeeManager& operator=(const EmployeeManager& em) = delete;
 
     StatusType addEmployee(int employeeID, int companyID, long long int grade);
 
     StatusType removeEmployee(int employeeID);
 
-    StatusType acquireCompany(int acquirerID, int targetID, long double factor);
+    StatusType acquireCompany(int acquirerID, int targetID, double factor);
     
     StatusType employeeSalaryIncrease(int employeeID, long long int salaryIncrease);
 

@@ -119,19 +119,6 @@ public:
         this->right = new_right;
     }
 
-    /*
-
-    This is no longer needed
-    Change this in functions
-
-    bool outOfBounds() const {
-        return (this->parent == nullptr);
-    }
-
-    */
-
-    // This function relies on the existence of a dummy node. If removed, update to 'this'
-
     bool isLeaf() const
     {
         return (this->left == nullptr && this->right == nullptr);

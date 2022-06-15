@@ -14,7 +14,7 @@ struct EmployeeNode {
     EmployeeNode* next;
     bool is_set; // Only matters for first node in each linked list
 
-    EmployeeNode(Employee* _employee, EmployeeNode* _prev = nullptr, EmployeeNode* _next = nullptr);
+    EmployeeNode(Employee* _employee = nullptr, EmployeeNode* _prev = nullptr, EmployeeNode* _next = nullptr);
 };
 
 class EmployeeHash {
@@ -23,6 +23,7 @@ class EmployeeHash {
         int max_size; // Number of overall elements in array
         int non_empty_count;
         int employee_size;
+        bool delete_employees;
 
         int hashFunction(int id){
             return id % max_size;

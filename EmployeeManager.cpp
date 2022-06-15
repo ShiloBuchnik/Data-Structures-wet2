@@ -1,14 +1,19 @@
 #include "EmployeeManager.h"
 #include <exception>
 #include <climits>
+#include <iostream>
 
-EmployeeManager::EmployeeManager(int _num_companies): 
-    companies(new CompanyUnion(_num_companies)), employees(new EmployeeHash()), top_workers(new EarnerRankTree()), num_companies(_num_companies) {}
+EmployeeManager::EmployeeManager(int _num_companies):
+    companies(new CompanyUnion(_num_companies)), employees(new EmployeeHash()), top_workers(new EarnerRankTree()), num_companies(_num_companies), non_salary_sum_grades(0), non_salary_count(0) {}
 
 EmployeeManager::~EmployeeManager() {
+    // Deleting employees
+    this->employees->delete_employees = true;
+
     delete this->top_workers;
     delete this->employees;
     delete this->companies;
+
 }
 
 
@@ -42,7 +47,7 @@ StatusType EmployeeManager::addEmployee(int employeeID, int companyID, long long
     return SUCCESS;
 }
 
-StatusType EmployeeManager::removeEmployee(int employeeID) {
+    StatusType EmployeeManager::removeEmployee(int employeeID) {
     Employee* employee = this->employees->getEmployee(employeeID);
 
     if (!employee) {
@@ -77,21 +82,33 @@ StatusType EmployeeManager::removeEmployee(int employeeID) {
 }
 
 
-StatusType EmployeeManager::acquireCompany(int acquirerID, int targetID, long double factor) {
+StatusType EmployeeManager::acquireCompany(int acquirerID, int targetID, double factor) {
     if (acquirerID > this->num_companies || targetID > this->num_companies || acquirerID <= 0  || targetID <= 0 || acquirerID == targetID || factor <= 0.0) {
         return INVALID_INPUT;
     }
 
     CompanyNode* acquirer = this->companies->find(acquirerID);
     CompanyNode* target = this->companies->find(targetID);
-    try {
-        if (acquirerID == 69 && targetID == 70){
-            std::cout << "WE FIGHT";
-        }
-        acquirer->company->top_workers = MergeEarnerRankTrees(acquirer->company->top_workers, target->company->top_workers);
-        delete target->company->top_workers;
 
-        EmployeeHash* target_employees = target->company->employees;
+    // Return if 'acquirer' and 'target' refer to the same company ID
+    if (acquirer == target) {
+        return INVALID_INPUT;
+    }
+
+    // In order to avoid confusion (Note: node->parent is the actual label that needs to be altered!)
+    CompanyNode* acquirer_label = acquirer->label;
+    CompanyNode* target_label = target->label;
+
+    try {
+        EarnerRankTree* old_acquire_tree = acquirer_label->company->top_workers;
+        acquirer_label->company->top_workers = MergeEarnerRankTrees(acquirer_label->company->top_workers, target_label->company->top_workers);
+        delete old_acquire_tree;
+
+        // Delete and set as a nullptr for safety
+        delete target_label->company->top_workers;
+        target_label->company->top_workers = nullptr;
+
+        EmployeeHash* target_employees = target_label->company->employees;
 
         // Raw iteration over elements of hash table, ideally this would be implemented as an iterator of sorts
         for (int i = 0; i < target_employees->max_size; i++) {
@@ -101,15 +118,15 @@ StatusType EmployeeManager::acquireCompany(int acquirerID, int targetID, long do
             EmployeeNode* node = list->next;
 
             while (node) {
-                node->employee->company = acquirer->company;
+                node->employee->company = acquirer_label->company;
                 node = node->next;
             }
         }
 
-        acquirer->company->non_salary_sum_grades += target->company->non_salary_sum_grades;
-        acquirer->company->non_salary_count += target->company->non_salary_count;
-        target->company->non_salary_sum_grades = 0;
-        target->company->non_salary_count = 0;
+        acquirer_label->company->non_salary_sum_grades += target_label->company->non_salary_sum_grades;
+        acquirer_label->company->non_salary_count += target_label->company->non_salary_count;
+        target_label->company->non_salary_sum_grades = 0;
+        target_label->company->non_salary_count = 0;
 
         this->companies->acquisition(acquirer, target, factor);
 
@@ -199,11 +216,6 @@ StatusType EmployeeManager::promoteEmployee(int employeeID, long long int bumpGr
 
     return SUCCESS;
 }
-
-
-
-
-
 
 StatusType EmployeeManager::sumOfBumpGradeBetweenTopWorkersByGroup(int companyID, int m, void* sumBumpGrades) {
     if (!sumBumpGrades || companyID < 0 || companyID > this->num_companies || m <= 0){
@@ -296,21 +308,16 @@ StatusType EmployeeManager::sumOfBumpGradeBetweenTopWorkersByGroup(int companyID
      EarnerTreeNode* max_node = findMaxBelowLimit(node, higherSalary);
      EarnerTreeNode* min_node = findMinAboveLimit(node, lowerSalary);
 
-//     [0, x] &&
-//     min node != null && max node == null &&
-//     context_non_salary_count == 0
-
-
     long long int sum = 0;
     int range_count = 0;
 
     if (lowerSalary == 0){
         if (context_non_salary_count == 0){
-            if (!min_node || !max_node) return FAILURE; // OK state
+            if (!min_node || !max_node) return FAILURE;
         }
         else{
-            if (!max_node){ //Here we have context_non_salary_count != 0 and an empty tree (no need to check min for nullity)
-                *((long double*)averageBumpGrade) = (long double)context_non_salary_sum_grades / context_non_salary_count;
+            if (!max_node){ // Here we have context_non_salary_count != 0 and an empty tree (no need to check min for nullity)
+                *((double*)averageBumpGrade) = (double)context_non_salary_sum_grades / context_non_salary_count;
                 return SUCCESS;
             }
 
@@ -322,17 +329,8 @@ StatusType EmployeeManager::sumOfBumpGradeBetweenTopWorkersByGroup(int companyID
         if (!min_node || !max_node) return FAILURE;
     }
 
-     sum = node->sum_grades;
-     range_count = node->top_workers_count;
-
-
-//     if ((min_node == nullptr &&  context_non_salary_count == 0) || (min_node == nullptr && lowerSalary != 0)){
-//         return FAILURE;
-//     }
-//     if (!max_node){
-//         return FAILURE;
-//     }
-
+     sum += node->sum_grades;
+     range_count += node->top_workers_count;
 
      // For max_node
      while(node){
@@ -370,7 +368,7 @@ StatusType EmployeeManager::sumOfBumpGradeBetweenTopWorkersByGroup(int companyID
          }
      }
 
-     *((long double*)averageBumpGrade) = (long double)sum / range_count;
+     *((double*)averageBumpGrade) = (double)sum / range_count;
      return SUCCESS;
  }
 
@@ -449,7 +447,7 @@ StatusType EmployeeManager::companyValue(int companyID, void* standing) {
         return INVALID_INPUT;
     }
 
-    *((long double*) standing) = this->companies->companyValue(companyID);
+    *((double*) standing) = this->companies->companyValue(companyID);
 
     return SUCCESS;
 }

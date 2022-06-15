@@ -2,49 +2,56 @@
 #define UNIONFIND_H_
 
 #include "Company.h"
+#include <memory>
 
 #define NO_SIZE -1
 
 struct CompanyNode{
     Company* company;
     CompanyNode* parent;
-    int size;
-    long double r; // Helper field, as seen in boxes problem
+    CompanyNode* label;
 
+    int size;
+    double r; // Helper field, as seen in boxes problem
+
+
+    CompanyNode() : company(nullptr), parent(nullptr), label(nullptr), size(NO_SIZE), r(0)  {}
 
     CompanyNode(Company* _company, CompanyNode* _parent = nullptr, int _size = 1) :
-         company(_company), parent(_parent), size(_size) {
-             r = _company->value;
-         }
+         company(_company), parent(_parent), label(nullptr), size(_size)  {
+             r = _company->ID;
+    }
 
-    bool isRoot() { return this->parent->parent == nullptr; }
+    bool isRoot() {
+        return !this->parent;
+    }
 };
 
 class CompanyUnion{
     public:
-        CompanyNode** companyNodes;
+        CompanyNode* companyNodes;
         int numberOfCompanies;
 
     public:
         CompanyUnion(int k) {
             numberOfCompanies = k;
-            this->companyNodes = new CompanyNode*[k];
+            this->companyNodes = new CompanyNode[k];
 
             // Note: there will be a label (dummy) CompanyNode that stores owner of company tree
             for (int ID = 0; ID < k; ID++) {
-                this->companyNodes[ID] = new CompanyNode(new Company(ID + 1));
-                this->companyNodes[ID]->parent = new CompanyNode(this->companyNodes[ID]->company); // Creating the labels
+                this->companyNodes[ID] = CompanyNode(new Company(ID + 1));
+                this->companyNodes[ID].label = &this->companyNodes[ID]; // Creating the labels
             }
         }
 
         // Union function
-        void acquisition(CompanyNode* acquirer, CompanyNode* target, long double factor) {
+        void acquisition(CompanyNode* acquirer, CompanyNode* target, double factor) {
             if (acquirer == target || !acquirer->isRoot() || !target->isRoot()) return;
-            
-            CompanyNode* acquirer_label = acquirer->parent;
-            CompanyNode* target_label = target->parent;
 
-            long double added_value = factor * target_label->company->value;
+            CompanyNode* acquirer_label = acquirer->label;
+            CompanyNode*  target_label = target->label;
+
+            double added_value = factor * this->companyValue(target_label->company->ID);
 
             int unified_group_size = acquirer_label->size + target_label->size;
 
@@ -59,56 +66,54 @@ class CompanyUnion{
             delete acquirer_hash;
             delete target_hash;
 
-            CompanyNode* greater = (acquirer_label->size >= target_label->size) ? acquirer : target; // Potential bug
+            CompanyNode* greater = (acquirer_label->size >= target_label->size) ? acquirer : target;
             CompanyNode* smaller = (greater == acquirer) ? target : acquirer;
 
             acquirer->r += added_value;
 
-            if (target == greater)
-                acquirer->r -= target->r;
-            else
+            if (acquirer == greater)
                 target->r -= acquirer->r;
-
-            // The target label is no longer needed from this point on
-            delete target_label;
+            else
+                acquirer->r -= target->r;
 
             smaller->parent = greater;
-            acquirer_label->size = unified_group_size;
+            greater->parent = nullptr;
 
-            greater->parent = acquirer_label;
+            acquirer_label->size = unified_group_size;
+            target_label->size = NO_SIZE;
+
+            smaller->label = nullptr;
+            greater->label = acquirer_label;
         }
 
         CompanyNode* find(int CompanyID) {
-            long double r_sum = 0.0;
+            double r_sum = 0.0;
 
             if (CompanyID > numberOfCompanies || CompanyID <= 0) {
                 return nullptr;
             }
 
-            CompanyNode* node = this->companyNodes[CompanyID - 1];
-            while (node->parent->parent) {
-                r_sum += node->r; // Moral compass
+            CompanyNode* node = &this->companyNodes[CompanyID - 1];
+            while (node->parent) {
+                r_sum += node->r;
                 node = node->parent;
             }
 
             CompanyNode* root = node;
 
-            long double r_subtract = 0;
-            // $root now stores the root of target company
-            node = this->companyNodes[CompanyID - 1];
+            // 'root' now stores the root of target company
+            node = &this->companyNodes[CompanyID - 1];
             CompanyNode* temp_parent;
+
             while (node != root) {
-                r_subtract += node->r;
-                node->r = (r_sum - r_subtract) + node->r;
-                node->company->value = node->r + root->r;
+				double node_r = node->r;
+				node->r = r_sum;
+				r_sum -= node_r;
 
                 temp_parent = node->parent;
                 node->parent = root;
                 node = temp_parent;
             }
-
-            r_subtract += node->r;
-            node->company->value = (r_sum - r_subtract) + 2 * node->r;
 
             return root;
         }
@@ -118,24 +123,28 @@ class CompanyUnion{
 
             if (!root) return nullptr;
 
-            return root->parent->company;
+            return root->label->company;
         }
 
-        long double companyValue(int ID) {
-            this->find(ID);
-            return companyNodes[ID - 1]->company->value;
+        double companyValue(int ID) {
+
+			CompanyNode* node = &companyNodes[ID - 1];
+			double sum = node->r;
+
+			while (node->parent) {
+				node = node->parent;
+				sum += node->r;
+			}
+
+			return sum;
         }
 
         ~CompanyUnion(){
             for(int i = 0; i < numberOfCompanies; i++) {
-                if (this->companyNodes[i]->isRoot()){
-                    delete companyNodes[i]->parent;
-                }
-                delete this->companyNodes[i]->company;
-                delete this->companyNodes[i];
+                delete companyNodes[i].company;
             }
 
-            delete this->companyNodes;
+            delete[] companyNodes;
         }
 };
 

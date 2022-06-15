@@ -15,6 +15,7 @@ EmployeeHash::EmployeeHash(){
     employee_size = 0;
     max_size = 1;
     employeeNodes[0] = new EmployeeNode(nullptr);
+    delete_employees = false;
 }
 
  bool EmployeeHash::addEmployeeNoResize(int ID, Employee* employee) {
@@ -86,13 +87,14 @@ void EmployeeHash::resize(){
 
     for (int i = 0; i < max_size; i++) employeeNodes[i] = new EmployeeNode(nullptr); // Creating a dummy for every element in new array
 
+    EmployeeNode* list_iter = nullptr;
     for (int i = 0; i < old_max; i++){ // Deleting the elements in old array
         if (!(old_arr[i]->next)){
             delete old_arr[i];
             continue;
         }
 
-        EmployeeNode* list_iter = old_arr[i];
+        list_iter = old_arr[i];
         while(list_iter->next){
             list_iter = list_iter->next;
             delete list_iter->prev;
@@ -115,6 +117,7 @@ EmployeeHash::EmployeeHash(EmployeeHash* x1, EmployeeHash* x2) {
     this->non_empty_count = 0;
     this->employee_size = 0;
     this->max_size = std::max(x1->max_size, x2->max_size);
+    this->delete_employees = false;
 
     this->employeeNodes = new EmployeeNode*[this->max_size];
 
@@ -189,9 +192,18 @@ EmployeeHash::~EmployeeHash(){
 
         EmployeeNode* list_iter = employeeNodes[i];
         while(list_iter->next){
+            if (this->delete_employees){
+                delete list_iter->employee;
+            }
             list_iter = list_iter->next;
             delete list_iter->prev;
         }
+
+        if (this->delete_employees){
+            delete list_iter->employee;
+        }
         delete list_iter;
     }
+
+    delete[] this->employeeNodes;
 }
