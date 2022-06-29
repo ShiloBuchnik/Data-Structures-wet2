@@ -83,8 +83,8 @@ StatusType SumOfBumpGradeBetweenTopWorkersByGroup(void *DS, int companyID, int m
     if (res != SUCCESS){
         return res;
     }
-     
-     printf("AverageBumpGradeBetweenSalaryByGroup: %.1lf\n", floor(10 * averageBumpGrade + 0.5f) / (double)10);
+
+    printf("AverageBumpGradeBetweenSalaryByGroup: %.1lf\n", averageBumpGrade);
 
      return SUCCESS;
  }
@@ -102,7 +102,7 @@ StatusType CompanyValue(void *DS, int companyID) {
         return res;
     }
 
-    printf("CompanyValue: %.1lf\n", floor(10 * standing + 0.5f) / (double)10);
+    printf("CompanyValue: %.1lf\n", floor(10.0 * standing + 0.5f) / (double)10);
 
     return SUCCESS;
 }

@@ -320,10 +320,9 @@ static errorType OnPromoteEmployee(void* DS, const char* const command) {
 static errorType OnSumOfBumpGradeBetweenTopWorkersByGroup (void* DS, const char* const command) {
     int companyID;
     int m;
-    long long int sumBump;
     ValidateRead(sscanf(command, "%d %d", &companyID, &m), 2,
                  "SumOfBumpGradeBetweenTopWorkersByGroup failed.\n");
-    StatusType res = SumOfBumpGradeBetweenTopWorkersByGroup(DS, companyID, m, &sumBump);
+    StatusType res = SumOfBumpGradeBetweenTopWorkersByGroup(DS, companyID, m);
 
     if (res != SUCCESS) {
         printf("SumOfBumpGradeBetweenTopWorkersByGroup: %s\n", ReturnValToStr(res));
@@ -334,7 +333,6 @@ static errorType OnSumOfBumpGradeBetweenTopWorkersByGroup (void* DS, const char*
      * Implement here the printing of the variable
      */
 
-    printf("SumOfBumpGradeBetweenTopWorkersByGroup: %lld\n", sumBump);
     return error_free;
 }
 
@@ -346,17 +344,14 @@ static errorType OnAverageBumpGradeBetweenSalaryByGroup (void* DS, const char* c
     int companyID;
     int lowerSalary;
     int higherSalary;
-    long double average;
     ValidateRead(sscanf(command, "%d %d %d", &companyID, &lowerSalary, &higherSalary), 3,
                  "AverageBumpGradeBetweenSalaryByGroup failed.\n");
-    StatusType res = AverageBumpGradeBetweenSalaryByGroup(DS, companyID, lowerSalary, higherSalary, &average);
+    StatusType res = AverageBumpGradeBetweenSalaryByGroup(DS, companyID, lowerSalary, higherSalary);
 
     if (res != SUCCESS) {
         printf("AverageBumpGradeBetweenSalaryByGroup: %s\n", ReturnValToStr(res));
         return error_free;
     }
-
-    printf("AverageBumpGradeBetweenSalaryByGroup: %Lf\n", average);
 
     return error_free;
 }
@@ -367,17 +362,14 @@ static errorType OnAverageBumpGradeBetweenSalaryByGroup (void* DS, const char* c
 
 static errorType OnCompanyValue(void* DS, const char* const command) {
     int companyID;
-    long double standing;
     ValidateRead(sscanf(command, "%d", &companyID), 1,
                  "CompanyValue failed.\n");
-    StatusType res = CompanyValue(DS, companyID, &standing);
+    StatusType res = CompanyValue(DS, companyID);
 
     if (res != SUCCESS) {
         printf("CompanyValue: %s\n", ReturnValToStr(res));
         return error_free;
     }
-
-    printf("CompanyValue: %Lf\n", standing);
 
     return error_free;
 }
